@@ -1,0 +1,40 @@
+>>>>>> Frontend (React.js) Dockerfile <<<<<<<
+FROM nginx:alpine
+COPY build/ /usr/share/nginx/html
+
+>>>>> Script/commands for frontend (React.js) deployment <<<<< 
+
+#!/bin/bash
+sudo docker stop frontend-service-cont || true
+sudo docker rm frontend-service-cont || true
+sudo docker rmi frontend-service:latest || true
+cd /home/ubuntu/React-frontend/
+sudo docker build -f /home/ubuntu/React-frontend/Dockerfile -t frontend-service:latest . 2>&1
+sudo docker run -itd -p 80:80 --name frontend-service-cont frontend-service:latest
+
+when using nginx as base image for frontend always give port as 80 even though your react app port is 3000 or something else.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+>>>>> Backend (java) Dockerfile <<<<<
+FROM eclipse-temurin:17-jdk
+WORKDIR /app
+COPY *.jar /app 
+ENTRYPOINT ["java", "-jar", "adminservice-0.0.1-SNAPSHOT.jar"]
+
+>>>> Script/commands for backend (java) deployment <<<<< 
+
+First remove the previous artifacts: sudo rm -rf /home/ubuntu/Candidate-service/*.jar
+
+#!/bin/bash
+sudo chmod +x  /home/ubuntu/Candidate-service/*.jar
+sudo docker stop candidate-service-cont 2>/home/ubuntu/Candidate-service/candidate.log || true
+sudo docker rm candidate-service-cont 2>/home/ubuntu/Candidate-service/candidate.log || true 
+sudo docker rmi candidate-service:latest 2>/home/ubuntu/Candidate-service/candidate.log || true
+cd /home/ubuntu/Candidate-service/
+sudo docker build -f /home/ubuntu/Candidate-service/Dockerfile -t candidate-service:latest . 2>&1
+sudo docker run -itd -p 8084:8084 --name candidate-service-cont candidate-service
+
+Make sure to have 
+server.address=0.0.0.0
+this above line in application.properties of all the services this enables the communication of services over the Internet
