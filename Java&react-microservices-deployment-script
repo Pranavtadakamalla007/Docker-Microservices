@@ -38,3 +38,36 @@ sudo docker run -itd -p 8084:8084 --name candidate-service-cont candidate-servic
 Make sure to have 
 server.address=0.0.0.0
 this above line in application.properties of all the services this enables the communication of services over the Internet
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Script can be made efficient by using variables
+
+#!/bin/bash
+
+set -e  # Exit immediately if a command exits with a non-zero status
+set -o pipefail  # Make pipelines fail on the first failed command
+LOG_FILE="/home/ubuntu/Admin-service/admin.log"
+SERVICE_NAME="admin-service"
+JAR_DIR="/home/ubuntu/Admin-service"
+DOCKER_IMAGE="${SERVICE_NAME}:latest"
+DOCKER_CONTAINER="${SERVICE_NAME}-cont"
+PORT="8083"
+
+# Make JAR executable
+chmod +x "${JAR_DIR}"/*.jar
+
+# Stop and remove existing container
+docker stop "${DOCKER_CONTAINER}" >> "$LOG_FILE" 2>&1 || echo "Container not running"
+docker rm "${DOCKER_CONTAINER}" >> "$LOG_FILE" 2>&1 || echo "No container to remove"
+
+# Remove existing image
+docker rmi "${DOCKER_IMAGE}" >> "$LOG_FILE" 2>&1 || echo "No image to remove"
+
+# Build Docker image
+cd "${JAR_DIR}"
+docker build -f Dockerfile -t "${DOCKER_IMAGE}" . >> "$LOG_FILE" 2>&1
+
+# Run container
+docker run -d -p "${PORT}:${PORT}" --name "${DOCKER_CONTAINER}" "${DOCKER_IMAGE}" >> "$LOG_FILE" 2>&1
+
