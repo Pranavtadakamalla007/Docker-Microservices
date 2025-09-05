@@ -1,0 +1,2 @@
+sudo docker system df -v :- To check how much space docker is using 
+docker builder prune -a -f :- it deletes the build cache (it deletes all the “scratch” layers Docker saved from previous builds)
